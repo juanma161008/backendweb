@@ -2,7 +2,7 @@ import {config} from 'dotenv';
 config();
 
 export default{
-    env: Process.env.NODE_ENV || 'development',
+    env: process.env.NODE_ENV || 'development',
     port: process.env.PORT || 3000,
     dbUser: process.env.DB_USER,
     dbPassword: process.env.DB_PASSWORD,
