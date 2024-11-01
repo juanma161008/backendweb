@@ -1,10 +1,9 @@
-// src/routes/prestamos.js
-import { Router } from 'express';
-import { metodosPrestamos } from '../controller/reportescontroller.js';
 
+import { Router } from 'express';
+import { metodosreportes } from '../controller/reportescontroller.js';
 const router = Router();
 
-router.get('/reportes', metodosPrestamos.getPrestamos);
+router.get('/reportes', metodosreportes.getReportes);
 
 
 export default router;
