@@ -1,8 +1,12 @@
 import { Router } from 'express';
-import { metodosTransacciones } from '../controller/transaccionescontroller.js';
+import { realizarTransaccion, obtenerHistorialTransacciones } from '../controller/transaccionescontroller.js';
 
 const router = Router();
 
-router.get('/transacciones', metodosTransacciones.getTransacciones);
+// Ruta para obtener el historial de transacciones de un usuario
+router.get('/:id_usuario', obtenerHistorialTransacciones);
+
+// Ruta para realizar una transacción
+router.post('/', realizarTransaccion);
 
 export default router;

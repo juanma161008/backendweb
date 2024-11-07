@@ -1,9 +1,10 @@
+// src/routes/usuarios.js
+import express from 'express';
+import { obtenerUsuarios } from '../controller/usuarioscontroller.js';
 
-import { Router } from 'express';
-import { metodosUsuarios } from '../controller/usuarioscontroller.js';
-const router = Router();
+const router = express.Router();
 
-router.get('/usuarios', metodosUsuarios.getUsuarios);
-
+// Define la ruta para obtener los usuarios
+router.get('/', obtenerUsuarios);
 
 export default router;

@@ -1,11 +1,17 @@
+// src/app.js
 import express from 'express';
-import router from './routes/usuarios.js';
-
-
+import usuariosRouter from './routes/usuarios.js';
+import transaccionesRouter from './routes/transacciones.js';
+import config from './config.js';
 
 const app = express();
-app.set('port',3000)
+app.set('port', config.port);
 
-app.use(router);
+// Middleware para parsear JSON
+app.use(express.json());
+
+// Usa la ruta para usuarios y transacciones
+app.use('/usuarios', usuariosRouter);
+app.use('/transacciones', transaccionesRouter);
 
 export default app;
