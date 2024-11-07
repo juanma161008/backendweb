@@ -1,4 +1,3 @@
-// src/routes/transacciones.js
 import { Router } from 'express';
 import { metodosTransacciones } from '../controller/transaccionescontroller.js';
 

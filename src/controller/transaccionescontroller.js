@@ -4,10 +4,10 @@ export const getTransacciones = async (req, res) => {
     try {
         const connection = await getConnection();
         const result = await connection.query('SELECT * FROM Transacciones'); 
-        res.json(result);
+        res.json(result[0]);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al obtener las transacciones' });
+        res.status(500);
     }
 };
 
