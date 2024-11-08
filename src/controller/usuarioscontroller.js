@@ -14,7 +14,7 @@ export const registroUsuario = async (req, res) => {
 
         // Guardar el nuevo usuario en la base de datos
         const [result] = await connection.query(
-            'INSERT INTO Usuarios (nombre, email, contraseña, numero_cuenta, tipo, saldo) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO Usuarios (nombre, email, contrasena, numero_cuenta, tipo, saldo) VALUES (?, ?, ?, ?, ?, ?)',
             [nombre, email, hashedPassword, numeroCuenta, tipo, saldo]
         );
 

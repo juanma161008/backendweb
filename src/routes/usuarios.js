@@ -1,10 +1,17 @@
 // src/routes/usuarios.js
+
 import express from 'express';
-import { obtenerUsuarios } from '../controller/usuarioscontroller.js';
+import { registroUsuario, loginUsuario, obtenerPerfil } from '../controller/usuarioscontroller.js';
 
 const router = express.Router();
 
-// Define la ruta para obtener los usuarios
-router.get('/', obtenerUsuarios);
+// Ruta para registrar un usuario
+router.post('/registro', registroUsuario);
+
+// Ruta para iniciar sesión
+router.post('/login', loginUsuario);
+
+// Ruta para obtener el perfil del usuario
+router.get('/:id/perfil', obtenerPerfil);
 
 export default router;
