@@ -16,11 +16,14 @@ export const getPrestamos = async (req, res) => {
 // Crear un nuevo préstamo
 export const createPrestamo = async (req, res) => {
     try {
-        const { descripcion, monto, fecha_solicitud } = req.body;
+        const { descripcion, monto, fecha_solicitud, plazo } = req.body;
         const id_prestamo = uuidv4(); // Genera un UUID para id_prestamo
         const connection = await getConnection();
-        const query = 'INSERT INTO prestamos (id_prestamo, monto, fecha_solicitud, estado) VALUES (?, ?, ?, "pendiente")';
-        const values = [id_prestamo, monto, fecha_solicitud];
+        const query = `
+            INSERT INTO prestamos (id_prestamo, descripcion, monto, fecha_solicitud, plazo, estado)
+            VALUES (?, ?, ?, ?, ?, "pendiente")
+        `;
+        const values = [id_prestamo, descripcion, monto, fecha_solicitud, plazo];
         await connection.query(query, values);
         res.status(201).json({ message: 'Préstamo creado con éxito', id_prestamo });
     } catch (error) {
