@@ -21,27 +21,21 @@ export const getTransacciones = async (req, res) => {
 };
 
 // Crear una nueva transacción con transacción
-export const createTransaccion = async (req, res) => {
-    const connection = await getConnection();
-    const { descripcion, monto, fecha, estado } = req.body;
+const createTransaccion = async (req, res) => {
+    const { id_usuario, tipo_transaccion, monto, fecha } = req.body;
+    
     try {
-        await connection.beginTransaction(); // Inicia la transacción
-
-        // Insertar la transacción en la base de datos
-        const query = 'INSERT INTO Transacciones (descripcion, monto, fecha, estado) VALUES (?, ?, ?, ?)';
-        const values = [descripcion, monto, fecha, estado];
-        await connection.query(query, values);
-
-        await connection.commit(); // Commit de la transacción
-        res.status(201).json({ message: 'Transacción creada con éxito' });
+        const [result] = await pool.query(
+            "INSERT INTO Transacciones (id_usuario, tipo_transaccion, monto, fecha) VALUES (?, ?, ?, ?)", 
+            [id_usuario, tipo_transaccion, monto, fecha]
+        );
+        res.json({ id: result.insertId, id_usuario, tipo_transaccion, monto, fecha });
     } catch (error) {
-        await connection.rollback(); // Rollback en caso de error
-        console.error(error);
-        res.status(500).json({ message: 'Error al crear la transacción' });
-    } finally {
-        connection.release(); // Liberar la conexión
+        console.error("Error al crear transacción:", error);
+        res.status(500).json({ message: "Error al crear transacción" });
     }
 };
+
 
 // Eliminar una transacción con transacción
 export const deleteTransaccion = async (req, res) => {
