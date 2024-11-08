@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors'; // Importa cors
-import router from './routes/prestamos.js';
+import router from './routes/usuarios.js';
 
 const app = express();
 app.set('port', 3000);
