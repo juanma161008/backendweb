@@ -1,10 +1,9 @@
 import { getConnection } from '../database/database.js';
 
-// Obtener todos los usuarios (sin cambios)
 export const getUsuarios = async (req, res) => {
     try {
         const connection = await getConnection();
-        const result = await connection.query('SELECT * FROM usuarios');
+        const result = await connection.query('SELECT numero_cuenta, tipo, saldo FROM usuarios');
         res.json(result[0]);
     } catch (error) {
         console.error(error);
