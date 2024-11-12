@@ -6,6 +6,5 @@ const router = Router();
 
 router.get('/transacciones', metodosTransacciones.getTransacciones);
 router.post('/transacciones', metodosTransacciones.createTransaccion);
-router.delete('/transacciones/:id', metodosTransacciones.deleteTransaccion);
 
 export default router;

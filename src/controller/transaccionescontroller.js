@@ -1,65 +1,52 @@
 import { getConnection } from "../database/database.js";
+import { v4 as uuidv4 } from 'uuid';
 
-// Obtener todas las transacciones con transacción
 export const getTransacciones = async (req, res) => {
     const connection = await getConnection();
     try {
-        await connection.beginTransaction(); // Inicia la transacción
+        await connection.beginTransaction(); 
 
-        // Obtener las transacciones
         const [result] = await connection.query('SELECT * FROM Transacciones');
 
-        await connection.commit(); // Commit de la transacción
-        res.json(result); // Responder con el resultado
+        await connection.commit();
+        res.json(result); 
     } catch (error) {
-        await connection.rollback(); // Rollback en caso de error
+        await connection.rollback();
         console.error(error);
         res.status(500).json({ message: 'Error al obtener las transacciones' });
     } finally {
-        connection.release(); // Liberar la conexión
+        connection.release(); 
     }
 };
 
-// Crear una nueva transacción con transacción
-const createTransaccion = async (req, res) => {
-    const { id_usuario, tipo_transaccion, monto, fecha } = req.body;
-    
+export const createTransaccion = async (req, res) => {
     try {
-        const [result] = await pool.query(
-            "INSERT INTO Transacciones (id_usuario, tipo_transaccion, monto, fecha) VALUES (?, ?, ?, ?)", 
-            [id_usuario, tipo_transaccion, monto, fecha]
-        );
-        res.json({ id: result.insertId, id_usuario, tipo_transaccion, monto, fecha });
+        const { id_usuario, tipo_transaccion, monto, fecha } = req.body;
+        const id_transaccion = uuidv4(); 
+        const connection = await getConnection();
+
+        const query = `
+            INSERT INTO Transacciones (id_transaccion, id_usuario, tipo_transaccion, monto, fecha)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        const values = [id_transaccion, id_usuario, tipo_transaccion, monto, fecha];
+        await connection.query(query, values);
+
+        const selectQuery = `
+            SELECT id_transaccion, id_usuario, tipo_transaccion, monto, fecha
+            FROM Transacciones
+            WHERE id_transaccion = ?
+        `;
+        const [rows] = await connection.query(selectQuery, [id_transaccion]);
+
+        res.status(201).json(rows[0]);
     } catch (error) {
-        console.error("Error al crear transacción:", error);
-        res.status(500).json({ message: "Error al crear transacción" });
-    }
-};
-
-
-// Eliminar una transacción con transacción
-export const deleteTransaccion = async (req, res) => {
-    const connection = await getConnection();
-    const { id } = req.params;
-    try {
-        await connection.beginTransaction(); // Inicia la transacción
-
-        // Eliminar la transacción de la base de datos
-        await connection.query('DELETE FROM Transacciones WHERE id_transaccion = ?', [id]);
-
-        await connection.commit(); // Commit de la transacción
-        res.status(200).json({ message: 'Transacción eliminada con éxito' });
-    } catch (error) {
-        await connection.rollback(); // Rollback en caso de error
         console.error(error);
-        res.status(500).json({ message: 'Error al eliminar la transacción' });
-    } finally {
-        connection.release(); // Liberar la conexión
+        res.status(500).json({ message: 'Error al crear la transacción' });
     }
 };
 
 export const metodosTransacciones = {
     getTransacciones,
     createTransaccion,
-    deleteTransaccion
 };
