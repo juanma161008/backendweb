@@ -4,7 +4,7 @@ import { metodosTransacciones } from '../controller/transaccionescontroller.js';
 
 const router = Router();
 
-router.get('/transacciones', metodosTransacciones.getTransacciones);
-router.post('/transacciones', metodosTransacciones.createTransaccion);
+router.get('/', metodosTransacciones.getTransacciones);
+router.post('/', metodosTransacciones.createTransaccion);
 
 export default router;

@@ -4,6 +4,6 @@ import { metodosPrestamos } from '../controller/prestamoscontroller.js';
 
 const router = Router();
 
-router.get('/prestamos', metodosPrestamos.getPrestamos);
-router.post('/prestamos', metodosPrestamos.createPrestamo); 
+router.get('/', metodosPrestamos.getPrestamos);
+router.post('/', metodosPrestamos.createPrestamo); 
 export default router;
