@@ -1,9 +1,9 @@
 
 import { Router } from 'express';
-import { metodosreportes } from '../controller/reportescontroller.js';
+import { metodosReportes } from '../controller/reportescontroller.js';
 const router = Router();
 
-router.get('/reportes', metodosreportes.getReportes);
+router.get('/reportes', metodosReportes.getReportes);
 
 
 export default router;
