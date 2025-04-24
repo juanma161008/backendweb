@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { metodosUsuarios } from '../controller/usuarioscontroller.js';
+
 const router = Router();
 
-router.get('/', metodosUsuarios.getUsuarios);
-router.post('/login', metodosUsuarios.loginUsuario);  // Cambiado para usar loginUsuario
+router.post('/login', metodosUsuarios.loginUsuario);  // para login
+router.post('/usuarios', metodosUsuarios.createUsuario);      // para crear
 
 export default router;
