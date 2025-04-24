@@ -12,7 +12,7 @@ export const getPrestamos = async (req, res) => {
 
         const connection = await getConnection();
         const [result] = await connection.query(
-            'SELECT * FROM prestamos WHERE id_usuario = ?',
+            'SELECT id_prestamo, id_usuario, descripcion, monto, plazo, estado, fecha_solicitud FROM prestamos WHERE id_usuario = ?',
             [id_usuario]
         );
 
@@ -23,33 +23,62 @@ export const getPrestamos = async (req, res) => {
     }
 };
 
-// ✅ Crear préstamo para un usuario
+// ✅ Crear préstamo para un usuario (versión mejorada)
 export const createPrestamo = async (req, res) => {
+    let connection;
     try {
         const { id_usuario, descripcion, monto, plazo } = req.body;
 
-        if (!id_usuario || !descripcion || !monto || !plazo) {
-            return res.status(400).json({ message: 'Faltan datos del préstamo o del usuario' });
+        // Validaciones robustas
+        if (!id_usuario) {
+            return res.status(400).json({ message: 'Usuario no autenticado' });
+        }
+        if (!descripcion?.trim()) {
+            return res.status(400).json({ message: 'Descripción requerida' });
+        }
+        if (isNaN(monto)) {
+            return res.status(400).json({ message: 'Monto debe ser numérico' });
+        }
+        if (isNaN(plazo)) {
+            return res.status(400).json({ message: 'Plazo debe ser numérico' });
+        }
+        if (parseFloat(monto) <= 0) {
+            return res.status(400).json({ message: 'Monto debe ser positivo' });
+        }
+        if (parseInt(plazo) <= 0) {
+            return res.status(400).json({ message: 'Plazo debe ser mayor a 0' });
         }
 
-        const id_prestamo = uuidv4();
-        const connection = await getConnection();
-        const query = `
-            INSERT INTO prestamos (id_prestamo, id_usuario, descripcion, monto, plazo, estado)
-            VALUES (?, ?, ?, ?, ?, "pendiente")
-        `;
-        const values = [id_prestamo, id_usuario, descripcion, monto, plazo];
-        await connection.query(query, values);
+        connection = await getConnection();
+        await connection.beginTransaction();
 
-        const [rows] = await connection.query(
-            'SELECT * FROM prestamos WHERE id_prestamo = ?',
-            [id_prestamo]
+        const id_prestamo = uuidv4();
+        const fecha_solicitud = new Date();
+
+        await connection.query(
+            `INSERT INTO prestamos 
+            (id_prestamo, id_usuario, descripcion, monto, plazo, estado, fecha_solicitud)
+            VALUES (?, ?, ?, ?, ?, "pendiente", ?)`,
+            [id_prestamo, id_usuario, descripcion.trim(), parseFloat(monto), parseInt(plazo), fecha_solicitud]
         );
 
-        res.status(201).json(rows[0]);
+        const [prestamosActualizados] = await connection.query(
+            'SELECT * FROM prestamos WHERE id_usuario = ? ORDER BY fecha_solicitud DESC',
+            [id_usuario]
+        );
+
+        await connection.commit();
+        res.status(201).json(prestamosActualizados);
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error al crear el préstamo' });
+        if (connection) await connection.rollback();
+        console.error('Error en createPrestamo:', error);
+        res.status(500).json({ 
+            message: 'Error al procesar el préstamo',
+            error: error.message 
+        });
+    } finally {
+        if (connection) connection.release();
     }
 };
 

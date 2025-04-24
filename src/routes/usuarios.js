@@ -3,7 +3,7 @@ import { metodosUsuarios } from '../controller/usuarioscontroller.js';
 
 const router = Router();
 
-router.post('/login', metodosUsuarios.loginUsuario);  // para login
-router.post('/usuarios', metodosUsuarios.createUsuario);      // para crear
+router.post('/login', metodosUsuarios.loginUsuario);
+router.post('/', metodosUsuarios.createUsuario); // Cambiado de '/usuarios' a '/'
 
 export default router;

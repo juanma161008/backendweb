@@ -1,57 +1,76 @@
-import { getConnection } from '../database/database.js';
+import { getConnection } from "../database/database.js";
+import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
-// ✅ Login - Filtra usuario por email y contraseña
+// Login de usuario
 export const loginUsuario = async (req, res) => {
     try {
         const { email, contrasena } = req.body;
-
+        
         if (!email || !contrasena) {
-            return res.status(400).json({ message: 'El email y la contraseña son requeridos' });
+            return res.status(400).json({ message: 'Email y contraseña son requeridos' });
         }
 
         const connection = await getConnection();
-        const [result] = await connection.query(
-            'SELECT id_usuario, nombre, email, numero_cuenta, tipo, saldo FROM usuarios WHERE email = ? AND contrasena = ?',
-            [email, contrasena]
+        const [users] = await connection.query(
+            'SELECT * FROM Usuarios WHERE email = ?',
+            [email]
         );
 
-        if (result.length === 0) {
-            return res.status(401).json({ message: 'Credenciales incorrectas' });
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        res.status(200).json({ message: "Login exitoso", user: result[0] });
+        const user = users[0];
+        const match = await bcrypt.compare(contrasena, user.contrasena);
+
+        if (!match) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
+        // Eliminar contraseña antes de enviar la respuesta
+        delete user.contrasena;
+        res.json(user);
     } catch (error) {
-        console.error('Error en loginUsuario:', error);
-        res.status(500).json({ message: 'Error al procesar el login' });
+        console.error(error);
+        res.status(500).json({ message: 'Error en el login' });
     }
 };
 
-
-
-// ✅ Crear un nuevo usuario
+// Crear nuevo usuario
 export const createUsuario = async (req, res) => {
     try {
-        const { email, contrasena } = req.body;
-
-        if (!email || !contrasena) {
-            return res.status(400).json({ message: "El email y la contraseña son requeridos" });
+        const { nombre, email, contrasena, numero_cuenta, tipo } = req.body;
+        
+        if (!nombre || !email || !contrasena || !numero_cuenta || !tipo) {
+            return res.status(400).json({ message: 'Todos los campos son requeridos' });
         }
 
+        const id_usuario = uuidv4();
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+        const saldo = 0.00;
+
         const connection = await getConnection();
-        const [result] = await connection.query(
-            'INSERT INTO usuarios (email, contrasena) VALUES (?, ?)',
-            [email, contrasena]
+        await connection.query(
+            'INSERT INTO Usuarios (id_usuario, nombre, email, contrasena, numero_cuenta, tipo, saldo) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id_usuario, nombre, email, hashedPassword, numero_cuenta, tipo, saldo]
         );
 
-        res.status(201).json({ message: "Usuario registrado con éxito", userId: result.insertId });
+        res.status(201).json({ 
+            id_usuario, 
+            nombre, 
+            email, 
+            numero_cuenta, 
+            tipo,
+            saldo
+        });
     } catch (error) {
-        console.error('Error en createUsuario:', error);
-        res.status(500).json({ message: "Error al registrar el usuario" });
+        console.error(error);
+        res.status(500).json({ message: 'Error al crear usuario' });
     }
 };
 
-// Exportar los métodos
 export const metodosUsuarios = {
-    createUsuario,
     loginUsuario,
+    createUsuario
 };

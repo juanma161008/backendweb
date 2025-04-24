@@ -1,82 +1,73 @@
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
-// Obtener todas las transacciones (solo para pruebas o administrador)
+// Obtener todas las transacciones
 export const getTransacciones = async (req, res) => {
-    const connection = await getConnection();
     try {
-        await connection.beginTransaction();
-
+        const connection = await getConnection();
         const [result] = await connection.query('SELECT * FROM Transacciones');
-
-        await connection.commit();
         res.json(result);
     } catch (error) {
-        await connection.rollback();
         console.error(error);
-        res.status(500).json({ message: 'Error al obtener las transacciones' });
-    } finally {
-        connection.release();
+        res.status(500).json({ message: 'Error al obtener transacciones' });
     }
 };
 
-// ✅ Obtener transacciones por ID de usuario (para mostrar solo las del usuario logueado)
+// Obtener transacciones por usuario
 export const getTransaccionesPorUsuario = async (req, res) => {
-    const { id_usuario } = req.body;
-
-    if (!id_usuario) {
-        return res.status(400).json({ message: "Falta el ID del usuario" });
-    }
-
-    const connection = await getConnection();
     try {
-        await connection.beginTransaction();
+        const { id_usuario } = req.body;
+        
+        if (!id_usuario) {
+            return res.status(400).json({ message: 'ID de usuario es requerido' });
+        }
 
+        const connection = await getConnection();
         const [result] = await connection.query(
             'SELECT * FROM Transacciones WHERE id_usuario = ?',
             [id_usuario]
         );
 
-        await connection.commit();
-        res.status(200).json(result);
+        res.json(result);
     } catch (error) {
-        await connection.rollback();
-        console.error("Error al obtener transacciones por usuario:", error);
-        res.status(500).json({ message: "Error al obtener transacciones del usuario" });
-    } finally {
-        connection.release();
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener transacciones del usuario' });
     }
 };
 
-// Crear una nueva transacción
+// Crear nueva transacción
 export const createTransaccion = async (req, res) => {
     try {
-        const { id_usuario, tipo_transaccion, monto, fecha } = req.body;
+        const { id_usuario, tipo_transaccion, monto } = req.body;
+        
+        if (!id_usuario || !tipo_transaccion || !monto) {
+            return res.status(400).json({ message: 'Datos incompletos' });
+        }
+
         const id_transaccion = uuidv4();
+        const fecha = new Date();
+
         const connection = await getConnection();
-
-        const query = `
-            INSERT INTO Transacciones (id_transaccion, id_usuario, tipo_transaccion, monto, fecha)
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        const values = [id_transaccion, id_usuario, tipo_transaccion, monto, fecha];
-        await connection.query(query, values);
-
-        const [rows] = await connection.query(
-            'SELECT id_transaccion, id_usuario, tipo_transaccion, monto, fecha FROM Transacciones WHERE id_transaccion = ?',
-            [id_transaccion]
+        await connection.query(
+            'INSERT INTO Transacciones (id_transaccion, id_usuario, tipo_transaccion, monto, fecha) VALUES (?, ?, ?, ?, ?)',
+            [id_transaccion, id_usuario, tipo_transaccion, monto, fecha]
         );
 
-        res.status(201).json(rows[0]);
+        res.status(201).json({ 
+            id_transaccion, 
+            id_usuario, 
+            tipo_transaccion, 
+            monto, 
+            fecha 
+        });
     } catch (error) {
-        console.error("Error al crear la transacción:", error);
-        res.status(500).json({ message: 'Error al crear la transacción' });
+        console.error(error);
+        res.status(500).json({ message: 'Error al crear transacción' });
     }
 };
 
-// Exportar todos los métodos
 export const metodosTransacciones = {
     getTransacciones,
-    getTransaccionesPorUsuario, // Nuevo método agregado
-    createTransaccion,
+    getTransaccionesPorUsuario,
+    createTransaccion
 };
