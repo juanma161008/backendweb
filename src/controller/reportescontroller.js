@@ -1,6 +1,13 @@
 import { getConnection } from "../database/database.js";
 
-export const getReportes = async (req, res) => {
+// ✅ Obtener reportes solo del usuario autenticado
+export const getReportesPorUsuario = async (req, res) => {
+    const { id_usuario } = req.body;
+
+    if (!id_usuario) {
+        return res.status(400).json({ message: "Falta el ID del usuario" });
+    }
+
     try {
         const connection = await getConnection();
         const [result] = await connection.query(`
@@ -18,7 +25,14 @@ export const getReportes = async (req, res) => {
                 Reportes
             JOIN 
                 Usuarios ON Reportes.id_usuario = Usuarios.id_usuario
-        `);
+            WHERE 
+                Reportes.id_usuario = ?
+        `, [id_usuario]);
+
+        if (result.length === 0) {
+            return res.status(404).json({ message: "No hay reportes disponibles para este usuario" });
+        }
+
         res.json(result);
     } catch (error) {
         console.error(error);
@@ -27,5 +41,5 @@ export const getReportes = async (req, res) => {
 };
 
 export const metodosReportes = {
-    getReportes,
+    getReportesPorUsuario,
 };

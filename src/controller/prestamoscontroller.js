@@ -1,11 +1,21 @@
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
-// Obtener todos los préstamos
+// ✅ Obtener préstamos del usuario autenticado
 export const getPrestamos = async (req, res) => {
     try {
+        const { id_usuario } = req.body;
+
+        if (!id_usuario) {
+            return res.status(400).json({ message: 'Falta el ID del usuario' });
+        }
+
         const connection = await getConnection();
-        const [result] = await connection.query('SELECT * FROM prestamos');
+        const [result] = await connection.query(
+            'SELECT * FROM prestamos WHERE id_usuario = ?',
+            [id_usuario]
+        );
+
         res.json(result);
     } catch (error) {
         console.error(error);
@@ -13,23 +23,28 @@ export const getPrestamos = async (req, res) => {
     }
 };
 
+// ✅ Crear préstamo para un usuario
 export const createPrestamo = async (req, res) => {
     try {
-        const { descripcion, monto, plazo } = req.body;
-        const id_prestamo = uuidv4(); 
+        const { id_usuario, descripcion, monto, plazo } = req.body;
+
+        if (!id_usuario || !descripcion || !monto || !plazo) {
+            return res.status(400).json({ message: 'Faltan datos del préstamo o del usuario' });
+        }
+
+        const id_prestamo = uuidv4();
         const connection = await getConnection();
         const query = `
-            INSERT INTO prestamos (id_prestamo, descripcion, monto, plazo, estado)
-            VALUES (?, ?, ?, ?, "pendiente")
+            INSERT INTO prestamos (id_prestamo, id_usuario, descripcion, monto, plazo, estado)
+            VALUES (?, ?, ?, ?, ?, "pendiente")
         `;
-        const values = [id_prestamo, descripcion, monto, plazo];
+        const values = [id_prestamo, id_usuario, descripcion, monto, plazo];
         await connection.query(query, values);
-        const selectQuery = `
-            SELECT id_prestamo, descripcion, monto, plazo, estado
-            FROM prestamos
-            WHERE id_prestamo = ?
-        `;
-        const [rows] = await connection.query(selectQuery, [id_prestamo]);
+
+        const [rows] = await connection.query(
+            'SELECT * FROM prestamos WHERE id_prestamo = ?',
+            [id_prestamo]
+        );
 
         res.status(201).json(rows[0]);
     } catch (error) {
@@ -37,9 +52,6 @@ export const createPrestamo = async (req, res) => {
         res.status(500).json({ message: 'Error al crear el préstamo' });
     }
 };
-
-
-
 
 export const metodosPrestamos = {
     getPrestamos,
