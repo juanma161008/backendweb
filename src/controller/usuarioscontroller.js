@@ -1,69 +1,66 @@
 import { getConnection } from "../database/database.js";
-import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
-// Login de usuario
+// Login de usuario (sin bcrypt)
 export const loginUsuario = async (req, res) => {
     try {
         const { email, contrasena } = req.body;
-        
+
         if (!email || !contrasena) {
             return res.status(400).json({ message: 'Email y contraseña son requeridos' });
         }
 
         const connection = await getConnection();
         const [users] = await connection.query(
-            'SELECT * FROM Usuarios WHERE email = ?',
-            [email]
+            'SELECT * FROM Usuarios WHERE email = ? AND contrasena = ?',
+            [email, contrasena]
         );
 
         if (users.length === 0) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
-
-        const user = users[0];
-        const match = await bcrypt.compare(contrasena, user.contrasena);
-
-        if (!match) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        // Eliminar contraseña antes de enviar la respuesta
-        delete user.contrasena;
-        res.json(user);
+        const usuario = users[0];
+        delete usuario.contrasena;
+
+        return res.status(200).json({
+            message: 'Inicio de sesión exitoso',
+            user: usuario
+        });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error en el login' });
+        console.error('Error en loginUsuario:', error);
+        return res.status(500).json({ message: 'Error en el proceso de inicio de sesión' });
     }
 };
 
-// Crear nuevo usuario
+// Crear nuevo usuario (sin bcrypt)
 export const createUsuario = async (req, res) => {
     try {
         const { nombre, email, contrasena, numero_cuenta, tipo } = req.body;
-        
+
         if (!nombre || !email || !contrasena || !numero_cuenta || !tipo) {
             return res.status(400).json({ message: 'Todos los campos son requeridos' });
         }
 
         const id_usuario = uuidv4();
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
         const saldo = 0.00;
 
         const connection = await getConnection();
         await connection.query(
             'INSERT INTO Usuarios (id_usuario, nombre, email, contrasena, numero_cuenta, tipo, saldo) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [id_usuario, nombre, email, hashedPassword, numero_cuenta, tipo, saldo]
+            [id_usuario, nombre, email, contrasena, numero_cuenta, tipo, saldo]
         );
 
-        res.status(201).json({ 
-            id_usuario, 
-            nombre, 
-            email, 
-            numero_cuenta, 
+        res.status(201).json({
+            id_usuario,
+            nombre,
+            email,
+            numero_cuenta,
             tipo,
             saldo
         });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al crear usuario' });
