@@ -1,5 +1,3 @@
-//prestamoscontroller.js
-
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,33 +43,49 @@ export const getPrestamos = async (req, res) => {
     }
 };
 
+const validarCampos = ({ id_usuario, descripcion, monto, plazo }) => {
+    const errores = {};
+    if (!id_usuario) errores.id_usuario = 'Falta ID usuario';
+    if (!descripcion) errores.descripcion = 'Falta descripción';
+    if (monto === undefined) errores.monto = 'Falta monto';
+    if (plazo === undefined) errores.plazo = 'Falta plazo';
+    return errores;
+};
+
+const verificarUsuarioExiste = async (connection, id_usuario) => {
+    const [usuario] = await connection.query(
+        'SELECT id_usuario FROM Usuarios WHERE id_usuario = ?', 
+        [id_usuario]
+    );
+    return usuario.length > 0;
+};
+
+const insertarPrestamo = async (connection, { id_prestamo, id_usuario, monto, plazo, descripcion }) => {
+    await connection.query(
+        'INSERT INTO Prestamos (id_prestamo, id_usuario, monto, plazo, estado, descripcion) VALUES (?, ?, ?, ?, "pendiente", ?)',
+        [id_prestamo, id_usuario, monto, plazo, descripcion.trim()]
+    );
+};
+
 export const createPrestamo = async (req, res) => {
     let connection;
     try {
         const { id_usuario, descripcion, monto, plazo } = req.body;
-        
-        if (!id_usuario || !descripcion || monto === undefined || plazo === undefined) {
-            return res.status(400).json({ 
+
+        const errores = validarCampos({ id_usuario, descripcion, monto, plazo });
+        if (Object.keys(errores).length > 0) {
+            return res.status(400).json({
                 success: false,
                 message: 'Todos los campos son requeridos',
-                details: {
-                    id_usuario: !id_usuario ? 'Falta ID usuario' : 'OK',
-                    descripcion: !descripcion ? 'Falta descripción' : 'OK',
-                    monto: monto === undefined ? 'Falta monto' : 'OK',
-                    plazo: plazo === undefined ? 'Falta plazo' : 'OK'
-                }
+                details: errores
             });
         }
 
         connection = await getConnection();
         await connection.beginTransaction();
 
-        const [usuario] = await connection.query(
-            'SELECT id_usuario FROM Usuarios WHERE id_usuario = ?', 
-            [id_usuario]
-        );
-        
-        if (usuario.length === 0) {
+        const usuarioExiste = await verificarUsuarioExiste(connection, id_usuario);
+        if (!usuarioExiste) {
             await connection.rollback();
             return res.status(404).json({
                 success: false,
@@ -83,13 +97,16 @@ export const createPrestamo = async (req, res) => {
         const montoFinal = parseFloat(monto);
         const plazoFinal = parseInt(plazo);
 
-        await connection.query(
-            'INSERT INTO Prestamos (id_prestamo, id_usuario, monto, plazo, estado, descripcion) VALUES (?, ?, ?, ?, "pendiente", ?)',
-            [id_prestamo, id_usuario, montoFinal, plazoFinal, descripcion.trim()]
-        );
+        await insertarPrestamo(connection, {
+            id_prestamo,
+            id_usuario,
+            monto: montoFinal,
+            plazo: plazoFinal,
+            descripcion
+        });
 
         await connection.commit();
-        
+
         res.status(201).json({
             success: true,
             message: 'Préstamo creado exitosamente',
@@ -106,8 +123,8 @@ export const createPrestamo = async (req, res) => {
     } catch (error) {
         if (connection) await connection.rollback();
         console.error('Error en createPrestamo:', error);
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             success: false,
             message: 'Error al procesar el préstamo',
             error: process.env.NODE_ENV === 'development' ? error.message : null,

@@ -1,36 +1,48 @@
-//app.js
-
+// app.js
 import express from 'express';
-import cors from 'cors'; 
-import router from './routes/rutas.js'; 
+import cors from 'cors';
+import router from './routes/rutas.js';
 
 const app = express();
+
+// 🔐 Desactivar el header "X-Powered-By" para evitar divulgación de tecnología
+app.disable('x-powered-by');
+
+// Configuración del puerto
 app.set('port', 3000);
 
-// Configuración de middlewares
-app.use(cors({ 
+// CORS
+app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Configuración para manejar datos JSON y form-urlencoded
-app.use(express.json({ 
+// Middleware para parseo de JSON
+app.use(express.json({
     limit: '10mb',
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
     }
 }));
 
-app.use(express.urlencoded({ 
-    extended: true, 
+// Middleware para formularios
+app.use(express.urlencoded({
+    extended: true,
     limit: '10mb'
 }));
 
 // Rutas principales
 app.use(router);
 
-// Manejo de errores global
+// 🔍 Ruta artificial para probar el middleware de error (solo en test)
+if (process.env.NODE_ENV === 'test') {
+    app.get('/forzar-error', (req, res, next) => {
+        next(new Error('Error forzado'));
+    });
+}
+
+// 🚨 Manejo global de errores del proceso
 process.on('uncaughtException', (err, origin) => {
     console.error('Uncaught Exception:', err);
     console.error('Exception origin:', origin);
@@ -41,7 +53,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Reason:', reason);
 });
 
-// Middleware para manejo de errores
+// Middleware global de manejo de errores HTTP
 app.use((err, req, res, next) => {
     console.error('Error middleware:', err);
     res.status(500).json({
