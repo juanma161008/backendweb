@@ -1,3 +1,5 @@
+//app.js
+
 import express from 'express';
 import cors from 'cors'; 
 import router from './routes/rutas.js'; 
@@ -32,7 +34,6 @@ app.use(router);
 process.on('uncaughtException', (err, origin) => {
     console.error('Uncaught Exception:', err);
     console.error('Exception origin:', origin);
-    // Considerar reiniciar el proceso en producción
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -40,7 +41,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Reason:', reason);
 });
 
-// Middleware para manejo de errores (debe ir después de las rutas)
+// Middleware para manejo de errores
 app.use((err, req, res, next) => {
     console.error('Error middleware:', err);
     res.status(500).json({

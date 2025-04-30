@@ -1,3 +1,5 @@
+//transacciones.test.js
+
 import request from 'supertest';
 import app from '../app.js';
 import { getConnection } from '../database/database.js';

@@ -1,7 +1,8 @@
+//transaccionescontroller.js
+
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
-// Obtener todas las transacciones
 export const getTransacciones = async (req, res) => {
     try {
         const connection = await getConnection();
@@ -13,7 +14,6 @@ export const getTransacciones = async (req, res) => {
     }
 };
 
-// Obtener transacciones por usuario
 export const getTransaccionesPorUsuario = async (req, res) => {
     try {
         const { id_usuario } = req.body;
@@ -35,7 +35,6 @@ export const getTransaccionesPorUsuario = async (req, res) => {
     }
 };
 
-// Crear nueva transacción
 export const createTransaccion = async (req, res) => {
     try {
         const { id_usuario, tipo_transaccion, monto } = req.body;

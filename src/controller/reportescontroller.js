@@ -1,6 +1,7 @@
+//reportescontroller.js
+
 import { getConnection } from "../database/database.js";
 
-// ✅ Obtener reportes solo del usuario autenticado
 export const getReportesPorUsuario = async (req, res) => {
     const { id_usuario } = req.body;
 

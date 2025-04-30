@@ -1,3 +1,5 @@
+//rutas.js
+
 import express from 'express';
 import usuariosRoutes from './usuarios.js';
 import transaccionesRoutes from './transacciones.js';

@@ -1,3 +1,5 @@
+//prestamoscontroller.js
+
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -48,7 +50,6 @@ export const createPrestamo = async (req, res) => {
     try {
         const { id_usuario, descripcion, monto, plazo } = req.body;
         
-        // Validaciones mejoradas
         if (!id_usuario || !descripcion || monto === undefined || plazo === undefined) {
             return res.status(400).json({ 
                 success: false,
@@ -65,7 +66,6 @@ export const createPrestamo = async (req, res) => {
         connection = await getConnection();
         await connection.beginTransaction();
 
-        // Validar que el usuario existe
         const [usuario] = await connection.query(
             'SELECT id_usuario FROM Usuarios WHERE id_usuario = ?', 
             [id_usuario]

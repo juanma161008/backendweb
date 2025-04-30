@@ -1,7 +1,8 @@
+//usuarioscontroller.js
+
 import { getConnection } from "../database/database.js";
 import { v4 as uuidv4 } from 'uuid';
 
-// Login de usuario (sin bcrypt)
 export const loginUsuario = async (req, res) => {
     try {
         const { email, contrasena } = req.body;
@@ -34,7 +35,6 @@ export const loginUsuario = async (req, res) => {
     }
 };
 
-// Crear nuevo usuario (sin bcrypt)
 export const createUsuario = async (req, res) => {
     try {
         const { nombre, email, contrasena, numero_cuenta, tipo } = req.body;

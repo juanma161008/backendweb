@@ -1,3 +1,5 @@
+//prestamos.js
+
 import { Router } from 'express';
 import { metodosPrestamos } from '../controller/prestamoscontroller.js';
 
