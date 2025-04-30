@@ -16,4 +16,4 @@ const getConnection = async () => {
     return await pool.getConnection();  
 };
 
-export { getConnection };
+export { getConnection, pool };
